@@ -69,15 +69,9 @@ fun OrderSuccessScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        "📱 Liên hệ Zalo: 0901234567",
+                        "📱 Thông tin liên hệ/Zalo: 0982699028",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF6D4C41)
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "Vui lòng giữ máy để admin gọi xác nhận đơn hàng.",
-                        style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF6D4C41)
                     )
                 }

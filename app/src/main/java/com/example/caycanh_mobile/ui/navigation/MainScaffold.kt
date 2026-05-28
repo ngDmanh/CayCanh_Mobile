@@ -20,8 +20,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.caycanh_mobile.ui.customer.home.CustomerHomeScreen
 import com.example.caycanh_mobile.ui.customer.cart.CartScreen
 import com.example.caycanh_mobile.ui.customer.orders.OrdersScreen
-import com.example.caycanh_mobile.ui.customer.profile.ProfilePlaceholderScreen
 import com.example.caycanh_mobile.ui.customer.categories.CategoriesPlaceholderScreen
+import com.example.caycanh_mobile.ui.customer.profile.ProfileScreen
 
 /**
  * 5 tab chính của customer app.
@@ -56,7 +56,11 @@ private val tabs = listOf(
 @Composable
 fun CustomerMainScaffold(
     onPlantClick: (plantId: String) -> Unit,
+    onOrderClick: (orderId: String) -> Unit,
     onNavigateCheckout: () -> Unit,
+    onProfileEditClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onMyReviewsClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     // NavController nội bộ cho 5 tab
@@ -100,10 +104,7 @@ fun CustomerMainScaffold(
             composable(BottomTab.Home.route) {
                 CustomerHomeScreen(
                     onPlantClick = onPlantClick,
-                    onNotificationClick = {
-                        // Tạm thời chưa làm Notification screen
-                        // Sau này navigate sang màn thông báo
-                    },
+                    onNotificationClick = onNotificationClick,
                     onLogout = onLogout
                 )
             }
@@ -125,14 +126,15 @@ fun CustomerMainScaffold(
             }
             composable(BottomTab.Orders.route) {
                 OrdersScreen(
-                    onOrderClick = { orderId ->
-                        // Phần 2 sẽ làm chi tiết đơn
-                        // Tạm thời chưa làm gì
-                    }
+                    onOrderClick = onOrderClick
                 )
             }
             composable(BottomTab.Profile.route) {
-                ProfilePlaceholderScreen(onLogout = onLogout)
+                ProfileScreen(
+                    onLogout = onLogout,
+                    onEditClick = onProfileEditClick,
+                    onMyReviewsClick = onMyReviewsClick
+                )
             }
         }
     }

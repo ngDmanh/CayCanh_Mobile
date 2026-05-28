@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.caycanh_mobile.data.local.TokenManager
 import com.example.caycanh_mobile.data.remote.dto.plant.PlantResponse
+import com.example.caycanh_mobile.data.repository.NotificationRepository
 import com.example.caycanh_mobile.data.repository.PlantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,9 +19,9 @@ data class CustomerHomeUiState(
     val searchQuery: String = "",
     val plants: List<PlantResponse> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val unreadCount: Long = 0L      // ← thêm
 ) {
-    /** Lọc cây theo từ khóa search ở client side */
     val filteredPlants: List<PlantResponse>
         get() = if (searchQuery.isBlank()) plants
         else plants.filter {
@@ -32,6 +33,7 @@ data class CustomerHomeUiState(
 @HiltViewModel
 class CustomerHomeViewModel @Inject constructor(
     private val plantRepository: PlantRepository,
+    private val notificationRepository: NotificationRepository,    // ← thêm
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
@@ -41,6 +43,7 @@ class CustomerHomeViewModel @Inject constructor(
     fun loadInitial() {
         loadUserName()
         loadPlants()
+        loadUnreadCount()
     }
 
     private fun loadUserName() {
@@ -64,6 +67,22 @@ class CustomerHomeViewModel @Inject constructor(
                             errorMessage = e.message ?: "Không tải được"
                         )
                     }
+                }
+        }
+    }
+
+    /**
+     * Load số thông báo chưa đọc để hiện badge trên chuông.
+     * Gọi mỗi lần Home resume để cập nhật.
+     */
+    fun loadUnreadCount() {
+        viewModelScope.launch {
+            notificationRepository.getUnreadCount()
+                .onSuccess { count ->
+                    _uiState.update { it.copy(unreadCount = count) }
+                }
+                .onFailure {
+                    // Lỗi → giữ count cũ, không show lỗi
                 }
         }
     }

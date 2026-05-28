@@ -64,12 +64,29 @@ fun SplashScreen(
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val authRepository: com.example.caycanh_mobile.data.repository.AuthRepository
 ) : ViewModel() {
 
+    /**
+     * Verify token thật sự còn hợp lệ bằng cách gọi /api/me.
+     * Nếu fail (token hết hạn hoặc user bị xóa) → clear local + bắt login lại.
+     */
     suspend fun checkAuth(): Pair<Boolean, String?> {
         val token = tokenManager.getAccessTokenOnce()
-        val role = tokenManager.getUserRoleOnce()
-        return (token != null) to role
+        if (token == null) {
+            return false to null
+        }
+
+        // Có token — gọi /api/me để verify
+        val result = authRepository.getMe()
+        return result.fold(
+            onSuccess = { user -> true to user.role },
+            onFailure = {
+                // Token expired/invalid → clear và đi Login
+                tokenManager.clearAuth()
+                false to null
+            }
+        )
     }
 }

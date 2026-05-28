@@ -43,7 +43,7 @@ class OrderRepository @Inject constructor(
         orderApi.getOrderById(id)
     }.recoverErrorMessage()
 
-    suspend fun cancelOrder(id: String): Result<MessageResponse> = runCatching {
+    suspend fun cancelOrder(id: String): Result<OrderResponse> = runCatching {
         orderApi.cancelOrder(id)
     }.recoverErrorMessage()
 

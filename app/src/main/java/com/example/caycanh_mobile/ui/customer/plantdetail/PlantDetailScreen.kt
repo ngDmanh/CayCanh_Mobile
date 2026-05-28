@@ -202,6 +202,59 @@ private fun PlantDetailContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // ─── Section Đánh giá ───
+            Spacer(Modifier.height(24.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                "Đánh giá",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(Modifier.height(8.dp))
+
+            if (uiState.totalReviews > 0) {
+                // Summary: điểm trung bình + sao
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        String.format("%.1f", uiState.averageRating ?: 0.0),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFB300)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        com.example.caycanh_mobile.ui.customer.review.StarRow(
+                            rating = Math.round(uiState.averageRating ?: 0.0).toInt(),
+                            starSize = 18
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            "${uiState.totalReviews} đánh giá",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Danh sách review
+                uiState.reviews.forEach { review ->
+                    com.example.caycanh_mobile.ui.customer.review.ReviewCard(
+                        review = review,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+            } else {
+                Text(
+                    "Chưa có đánh giá nào cho cây này",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

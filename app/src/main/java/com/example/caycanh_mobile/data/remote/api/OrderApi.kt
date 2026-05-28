@@ -23,5 +23,5 @@ interface OrderApi {
     suspend fun getOrderById(@Path("id") id: String): OrderResponse
 
     @PATCH("api/orders/my/{id}/cancel")
-    suspend fun cancelOrder(@Path("id") id: String): MessageResponse
+    suspend fun cancelOrder(@Path("id") id: String): OrderResponse
 }

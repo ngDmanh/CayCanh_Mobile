@@ -22,7 +22,15 @@ data class UserResponse(
     val id: String,
     val fullName: String,
     val email: String,
-    val phone: String?,
+    val phone: String? = null,
     val role: String = "customer",
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val createdAt: String? = null,
+    val lastProfileUpdatedAt: String? = null
+)
+
+@Serializable
+data class UpdateProfileRequest(
+    val fullName: String,
+    val phone: String? = null
 )

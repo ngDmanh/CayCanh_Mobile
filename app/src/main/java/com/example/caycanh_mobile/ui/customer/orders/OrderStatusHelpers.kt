@@ -45,12 +45,12 @@ fun getOrderDisplayInfo(order: OrderResponse): OrderDisplayInfo {
         "awaiting_deposit" -> {
             val deposit = order.totalAmount / 2
             OrderDisplayInfo(
-                statusLabel = "Chờ cọc 50%",
+                statusLabel = "Chờ đặt cọc",
                 statusColor = Color(0xFFFFC107),
                 statusIcon = Icons.Default.AttachMoney,
-                userMessage = "Đơn trên 500k cần đặt cọc trước khi giao.",
+                userMessage = "Bạn cần hoàn thành đặt cọc trước khi hàng được giao.",
                 actionRequired = ActionType.Transfer,
-                actionMessage = "Vui lòng chuyển khoản ${MoneyFormatter.format(deposit)} qua Zalo: 0901234567"
+                actionMessage = "Vui lòng chuyển khoản ${MoneyFormatter.format(deposit)} . \nMB bank: 0982699028"
             )
         }
 
@@ -58,9 +58,9 @@ fun getOrderDisplayInfo(order: OrderResponse): OrderDisplayInfo {
             statusLabel = "Chờ thanh toán",
             statusColor = Color(0xFFFFC107),
             statusIcon = Icons.Default.AttachMoney,
-            userMessage = "Đơn thuê cần thanh toán 100% trước khi giao.",
+            userMessage = "Đơn thuê cần thanh toán trước khi giao.",
             actionRequired = ActionType.Transfer,
-            actionMessage = "Vui lòng chuyển khoản ${MoneyFormatter.format(order.totalAmount)} qua Zalo: 0901234567"
+            actionMessage = "Vui lòng chuyển khoản ${MoneyFormatter.format(order.totalAmount)}.\nMB bank: 0982699028"
         )
 
         "confirmed" -> OrderDisplayInfo(

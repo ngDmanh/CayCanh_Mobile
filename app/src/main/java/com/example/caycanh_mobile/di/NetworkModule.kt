@@ -2,8 +2,10 @@ package com.example.caycanh_mobile.di
 
 import com.example.caycanh_mobile.data.remote.api.AuthApi
 import com.example.caycanh_mobile.data.remote.api.CartApi
+import com.example.caycanh_mobile.data.remote.api.NotificationApi
 import com.example.caycanh_mobile.data.remote.api.OrderApi
 import com.example.caycanh_mobile.data.remote.api.PlantApi
+import com.example.caycanh_mobile.data.remote.api.ReviewApi
 import com.example.caycanh_mobile.data.remote.interceptor.AuthInterceptor
 import com.example.caycanh_mobile.util.Constants
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -101,6 +103,18 @@ object NetworkModule {
     @Singleton
     fun provideOrderApi(retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(retrofit: Retrofit): NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideReviewApi(retrofit: Retrofit): ReviewApi {
+        return retrofit.create(ReviewApi::class.java)
     }
 
 }

@@ -17,7 +17,8 @@ import javax.inject.Inject
 class PlantDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val plantRepository: PlantRepository,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val reviewRepository: com.example.caycanh_mobile.data.repository.ReviewRepository
 ) : ViewModel() {
 
     private val plantId: String = checkNotNull(savedStateHandle["id"]) {
@@ -49,6 +50,7 @@ class PlantDetailViewModel @Inject constructor(
                             selectedActionType = defaultAction
                         )
                     }
+                    loadReviews()
                 }
                 .onFailure { e ->
                     _uiState.update {
@@ -123,5 +125,24 @@ class PlantDetailViewModel @Inject constructor(
 
     fun consumeAddToCartError() {
         _uiState.update { it.copy(addToCartError = null) }
+    }
+
+    /** Load review + summary của cây này */
+    private fun loadReviews() {
+        viewModelScope.launch {
+            reviewRepository.getPlantReviewSummary(plantId)
+                .onSuccess { summary ->
+                    _uiState.update {
+                        it.copy(
+                            averageRating = summary.averageRating,
+                            totalReviews = summary.totalReviews
+                        )
+                    }
+                }
+            reviewRepository.getPlantReviews(plantId, page = 0, size = 20)
+                .onSuccess { list ->
+                    _uiState.update { it.copy(reviews = list) }
+                }
+        }
     }
 }

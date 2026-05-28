@@ -65,6 +65,68 @@ class AuthRepository @Inject constructor(
         )
     }
 
+    suspend fun getMe(): Result<UserResponse> = runCatching {
+        val response = authApi.getMe()
+        if (response.isSuccessful) {
+            response.body() ?: error("Empty response")
+        } else {
+            error("Lỗi tải thông tin tài khoản: ${response.code()}")
+        }
+    }
+
+    suspend fun updateMyProfile(
+        fullName: String,
+        phone: String?
+    ): Result<UserResponse> = runCatching {
+        val response = authApi.updateMyProfile(
+            UpdateProfileRequest(fullName = fullName, phone = phone)
+        )
+        if (response.isSuccessful) {
+            response.body() ?: error("Empty response")
+        } else {
+            // Trích error message từ body
+            val errorBody = response.errorBody()?.string().orEmpty()
+            val msg = extractMessage(errorBody) ?: defaultMessageForCode(response.code())
+            error(msg)
+        }
+    }
+
+    suspend fun forgotPassword(email: String): Result<MessageResponse> = runCatching {
+        val response = authApi.forgotPassword(ForgotPasswordRequest(email.trim().lowercase()))
+        if (response.isSuccessful) {
+            response.body() ?: error("Empty response")
+        } else {
+            val errorBody = response.errorBody()?.string().orEmpty()
+            val msg = extractMessage(errorBody) ?: defaultMessageForCode(response.code())
+            error(msg)
+        }
+    }
+
+    suspend fun verifyResetOtp(email: String, otp: String): Result<VerifyResetOtpResponse> = runCatching {
+        val response = authApi.verifyResetOtp(
+            VerifyResetOtpRequest(email = email.trim().lowercase(), otp = otp.trim())
+        )
+        if (response.isSuccessful) {
+            response.body() ?: error("Empty response")
+        } else {
+            val errorBody = response.errorBody()?.string().orEmpty()
+            val msg = extractMessage(errorBody) ?: defaultMessageForCode(response.code())
+            error(msg)
+        }
+    }
+
+    suspend fun resetPassword(resetToken: String, newPassword: String): Result<MessageResponse> = runCatching {
+        val response = authApi.resetPassword(
+            ResetPasswordRequest(resetToken = resetToken, newPassword = newPassword)
+        )
+        if (response.isSuccessful) {
+            response.body() ?: error("Empty response")
+        } else {
+            val errorBody = response.errorBody()?.string().orEmpty()
+            val msg = extractMessage(errorBody) ?: defaultMessageForCode(response.code())
+            error(msg)
+        }
+    }
     /**
      * Trích error message thân thiện từ HttpException.
      * Backend trả về JSON dạng { "message": "...", "status": 400 } khi lỗi.

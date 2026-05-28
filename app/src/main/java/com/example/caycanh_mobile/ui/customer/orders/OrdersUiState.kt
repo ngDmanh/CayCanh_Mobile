@@ -6,9 +6,8 @@ data class OrdersUiState(
     val orders: List<OrderResponse> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-
-    // Filter: tab nào đang chọn
-    val selectedTab: OrderTab = OrderTab.Active
+    val selectedTab: OrderTab = OrderTab.Active,
+    val reviewedPlantIds: Set<String> = emptySet()
 )
 
 /**

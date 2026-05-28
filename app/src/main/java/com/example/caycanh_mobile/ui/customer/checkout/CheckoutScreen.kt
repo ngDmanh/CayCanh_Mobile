@@ -273,7 +273,12 @@ private fun PaymentInfoCard(totalAmount: Long, cartItems: List<CartItemResponse>
 
                 if (needsDeposit) {
                     Text(
-                        "⚠️ Đơn mua trên 500k cần cọc 50% (${MoneyFormatter.format(saleTotal / 2)}) trước khi giao hàng",
+                        "⚠️ Đơn hàng của bạn cần cọc 50% (${MoneyFormatter.format(saleTotal / 2)}).",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        "Đơn hàng của bạn chỉ được vận chuyển khi tiền đã được chuyển về tài khoản của chúng tôi",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -281,14 +286,19 @@ private fun PaymentInfoCard(totalAmount: Long, cartItems: List<CartItemResponse>
                 if (hasRental) {
                     if (needsDeposit) Spacer(Modifier.height(8.dp))
                     Text(
-                        "📌 Cây thuê cần thanh toán 100% trước khi giao",
+                        "Vui lòng thanh toán. Đơn hàng của bạn chỉ được vận chuyển khi tiền đã được chuyển về tài khoản của chúng tôi",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "💬 Admin sẽ liên hệ qua Zalo để hướng dẫn chuyển khoản",
+                    "Vui lòng chuyển khoản qua tài khoản ngân hàng.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "MB bank: 0982699028",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )

@@ -42,12 +42,25 @@ fun CustomerHomeScreen(
 
     LaunchedEffect(Unit) { viewModel.loadInitial() }
 
+// Reload số thông báo chưa đọc mỗi khi Home resume
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.loadUnreadCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
         // Top bar — avatar + search + bell
         HomeTopBar(
             userName = uiState.userName,
             searchQuery = uiState.searchQuery,
+            unreadCount = uiState.unreadCount,
             onSearchChange = viewModel::onSearchQueryChange,
             onNotificationClick = onNotificationClick
         )
@@ -118,6 +131,7 @@ fun CustomerHomeScreen(
 private fun HomeTopBar(
     userName: String?,
     searchQuery: String,
+    unreadCount: Long,
     onSearchChange: (String) -> Unit,
     onNotificationClick: () -> Unit
 ) {
@@ -168,16 +182,36 @@ private fun HomeTopBar(
                 keyboardOptions = KeyboardOptions(autoCorrectEnabled = false)
             )
 
-            // Notification bell
-            IconButton(
-                onClick = onNotificationClick,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    Icons.Default.Notifications,
-                    contentDescription = "Thông báo",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+            // Notification bell + badge số
+            Box(modifier = Modifier.size(40.dp)) {
+                IconButton(
+                    onClick = onNotificationClick,
+                    modifier = Modifier.matchParentSize()
+                ) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = "Thông báo",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                if (unreadCount > 0) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-4).dp, y = 4.dp)
+                            .size(18.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (unreadCount > 9) "9+" else unreadCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
