@@ -49,8 +49,7 @@ data class OrderResponse(
     val isRental: Boolean get() = orderType == "rental"
 
     val canCancel: Boolean
-        get() = status in listOf("pending", "awaiting_deposit", "awaiting_payment", "confirmed")
-}
+        get() = status in listOf("pending", "awaiting_deposit", "awaiting_payment")}
 
 @Serializable
 data class OrderItemResponse(
@@ -66,8 +65,11 @@ data class OrderItemResponse(
 
 @Serializable
 data class OrderItemRentalResponse(
-    val duration: Int,
-    val durationUnit: String,        // "day" | "week" | "month"
+    val rentalId: String? = null,
+    val duration: Int = 0,
+    val durationUnit: String = "month",
     val startDate: String? = null,
-    val endDate: String? = null
+    val endDate: String? = null,
+    val status: String? = null,
+    val actualReturnDate: String? = null
 )

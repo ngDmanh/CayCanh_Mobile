@@ -16,7 +16,6 @@ import com.example.caycanh_mobile.ui.auth.register.RegisterScreen
 import com.example.caycanh_mobile.ui.auth.verifyemail.VerifyEmailScreen
 import com.example.caycanh_mobile.ui.customer.checkout.CheckoutScreen
 import com.example.caycanh_mobile.ui.customer.checkout.OrderSuccessScreen
-import com.example.caycanh_mobile.ui.customer.home.AdminHomeScreen
 import com.example.caycanh_mobile.ui.customer.notifications.NotificationScreen
 import com.example.caycanh_mobile.ui.customer.orders.OrderDetailScreen
 import com.example.caycanh_mobile.ui.customer.plantdetail.PlantDetailScreen
@@ -99,6 +98,9 @@ fun AppNavGraph(
                 onOrderClick = { orderId ->
                     navController.navigate(Routes.OrderDetail.create(orderId))
                 },
+                onRentalClick = { rentalId ->
+                    navController.navigate(Routes.CustomerRentalDetail.create(rentalId))
+                },
                 onNavigateCheckout = {
                     navController.navigate(Routes.Checkout.route)
                 },
@@ -120,12 +122,76 @@ fun AppNavGraph(
         }
 
         composable(Routes.AdminHome.route) {
-            AdminHomeScreen(
+            com.example.caycanh_mobile.ui.admin.AdminMainScaffold(
                 onLogout = {
-                    navController.navigate(Routes.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    navController.navigate(Routes.Login.route) { popUpTo(0) { inclusive = true } }
+                },
+                onAddPlant = {
+                    navController.navigate(Routes.AdminPlantForm.create(null))
+                },
+                onEditPlant = { plantId ->
+                    navController.navigate(Routes.AdminPlantForm.create(plantId))
+                },
+                onOrderClick = { orderId ->
+                    navController.navigate(Routes.AdminOrderDetail.create(orderId))
+                },
+                onRentalClick = { rentalId ->
+                    navController.navigate(Routes.AdminRentalDetail.create(rentalId))
+                },
+                onNavigateRevenue = {
+                    navController.navigate(Routes.AdminRevenue.route)
+                },
+                onNavigateCustomers = {
+                    navController.navigate(Routes.AdminCustomers.route)
+                },
+                onNavigateLowStock = {
+                    navController.navigate(Routes.AdminLowStock.route)
+                },
+                onNavigateCategories = {
+                    navController.navigate(Routes.AdminCategories.route)
                 }
+            )
+        }
+
+        composable(
+            route = Routes.AdminRentalDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            com.example.caycanh_mobile.ui.admin.rentals.AdminRentalDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Routes.AdminPlantForm.route,
+            arguments = listOf(
+                androidx.navigation.navArgument("plantId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            com.example.caycanh_mobile.ui.admin.plants.AdminPlantFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSaveSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Routes.AdminOrderDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            com.example.caycanh_mobile.ui.admin.orders.AdminOrderDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Routes.CustomerRentalDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            com.example.caycanh_mobile.ui.customer.rentals.CustomerRentalDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -244,6 +310,26 @@ fun AppNavGraph(
 
         composable(Routes.MyReviews.route) {
             MyReviewsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.AdminRevenue.route) {
+            com.example.caycanh_mobile.ui.admin.revenue.AdminRevenueScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.AdminCustomers.route) {
+            com.example.caycanh_mobile.ui.admin.customers.AdminCustomersScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.AdminLowStock.route) {
+            com.example.caycanh_mobile.ui.admin.stock.AdminLowStockScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.AdminCategories.route) {
+            com.example.caycanh_mobile.ui.admin.categories.AdminCategoriesScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

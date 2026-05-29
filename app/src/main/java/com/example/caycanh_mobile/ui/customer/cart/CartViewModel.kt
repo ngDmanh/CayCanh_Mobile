@@ -55,6 +55,7 @@ class CartViewModel @Inject constructor(
                 }
                 cartRepository.updateCartItem(
                     itemId = itemId,
+                    quantity = item.quantity,
                     duration = newDuration,
                     durationUnit = item.durationUnit
                 )

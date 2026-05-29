@@ -495,7 +495,12 @@ private fun ItemRow(
                         "month" -> "tháng"
                         else -> ""
                     }
-                    "Thuê ${rental.duration} $unit × ${MoneyFormatter.format(item.unitPrice)}"
+                    val timeRange = if (rental.startDate != null && rental.endDate != null) {
+                        " • ${rental.startDate} → ${rental.endDate}"
+                    } else {
+                        " • Chờ admin giao cây"
+                    }
+                    "Thuê ${rental.duration} $unit × ${MoneyFormatter.format(item.unitPrice)}$timeRange"
                 } else {
                     "${item.quantity} × ${MoneyFormatter.format(item.unitPrice)}"
                 }

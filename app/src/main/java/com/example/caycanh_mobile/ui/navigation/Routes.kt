@@ -44,4 +44,26 @@ sealed class Routes(val route: String) {
     }
 
     object MyReviews : Routes("my_reviews")
+
+    object AdminPlantForm : Routes("admin_plant_form?plantId={plantId}") {
+        // plantId rỗng = tạo mới, có giá trị = sửa
+        fun create(plantId: String? = null): String =
+            if (plantId == null) "admin_plant_form" else "admin_plant_form?plantId=$plantId"
+    }
+
+    object AdminOrderDetail : Routes("admin_order_detail/{id}") {
+        fun create(id: String) = "admin_order_detail/$id"
+    }
+
+    object AdminRentalDetail : Routes("admin_rental_detail/{id}") {
+        fun create(id: String) = "admin_rental_detail/$id"
+    }
+
+    object CustomerRentalDetail : Routes("rental_detail/{id}") {
+        fun create(id: String) = "rental_detail/$id"
+    }
+    object AdminRevenue : Routes("admin_revenue")
+    object AdminCustomers : Routes("admin_customers")
+    object AdminLowStock : Routes("admin_low_stock")
+    object AdminCategories : Routes("admin_categories")
 }

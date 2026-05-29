@@ -1,10 +1,13 @@
 package com.example.caycanh_mobile.di
 
+import com.example.caycanh_mobile.data.remote.api.AdminApi
 import com.example.caycanh_mobile.data.remote.api.AuthApi
 import com.example.caycanh_mobile.data.remote.api.CartApi
+import com.example.caycanh_mobile.data.remote.api.CategoryApi
 import com.example.caycanh_mobile.data.remote.api.NotificationApi
 import com.example.caycanh_mobile.data.remote.api.OrderApi
 import com.example.caycanh_mobile.data.remote.api.PlantApi
+import com.example.caycanh_mobile.data.remote.api.RentalApi
 import com.example.caycanh_mobile.data.remote.api.ReviewApi
 import com.example.caycanh_mobile.data.remote.interceptor.AuthInterceptor
 import com.example.caycanh_mobile.util.Constants
@@ -115,6 +118,24 @@ object NetworkModule {
     @Singleton
     fun provideReviewApi(retrofit: Retrofit): ReviewApi {
         return retrofit.create(ReviewApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAdminApi(retrofit: Retrofit): AdminApi {
+        return retrofit.create(AdminApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryApi(retrofit: Retrofit): CategoryApi {
+        return retrofit.create(CategoryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRentalApi(retrofit: Retrofit): RentalApi {
+        return retrofit.create(RentalApi::class.java)
     }
 
 }

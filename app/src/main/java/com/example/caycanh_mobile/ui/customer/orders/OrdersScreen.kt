@@ -23,12 +23,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.caycanh_mobile.data.remote.dto.order.OrderResponse
+import com.example.caycanh_mobile.ui.customer.rentals.MyRentalsScreen
 import com.example.caycanh_mobile.util.MoneyFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrdersScreen(
     onOrderClick: (orderId: String) -> Unit,
+    onRentalClick: (rentalId: String) -> Unit,
     viewModel: OrdersViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,7 +50,6 @@ fun OrdersScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
 
-            // Tab filter
             OrderTabRow(
                 selectedTab = uiState.selectedTab,
                 onTabSelected = viewModel::onTabChange,
@@ -56,36 +57,43 @@ fun OrdersScreen(
                 completedCount = uiState.orders.count { it.isFinished }
             )
 
-            val filteredOrders = viewModel.getFilteredOrders()
-
-            when {
-                uiState.isLoading && uiState.orders.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                uiState.errorMessage != null && uiState.orders.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(uiState.errorMessage!!, color = MaterialTheme.colorScheme.error)
-                            Spacer(Modifier.height(12.dp))
-                            Button(onClick = { viewModel.loadOrders() }) { Text("Thử lại") }
-                        }
-                    }
-                }
-                filteredOrders.isEmpty() -> {
-                    EmptyOrders(tab = uiState.selectedTab)
+            // Render theo tab
+            when (uiState.selectedTab) {
+                OrderTab.Renting -> {
+                    MyRentalsScreen(onRentalClick = onRentalClick)
                 }
                 else -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(filteredOrders, key = { it.id }) { order ->
-                            OrderCard(
-                                order = order,
-                                onClick = { onOrderClick(order.id) }
-                            )
+                    val filteredOrders = viewModel.getFilteredOrders()
+                    when {
+                        uiState.isLoading && uiState.orders.isEmpty() -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        uiState.errorMessage != null && uiState.orders.isEmpty() -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(uiState.errorMessage!!, color = MaterialTheme.colorScheme.error)
+                                    Spacer(Modifier.height(12.dp))
+                                    Button(onClick = { viewModel.loadOrders() }) { Text("Thử lại") }
+                                }
+                            }
+                        }
+                        filteredOrders.isEmpty() -> {
+                            EmptyOrders(tab = uiState.selectedTab)
+                        }
+                        else -> {
+                            LazyColumn(
+                                contentPadding = PaddingValues(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(filteredOrders, key = { it.id }) { order ->
+                                    OrderCard(
+                                        order = order,
+                                        onClick = { onOrderClick(order.id) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -101,30 +109,31 @@ private fun OrderTabRow(
     activeCount: Int,
     completedCount: Int
 ) {
+    val tabs = listOf(OrderTab.Active, OrderTab.Renting, OrderTab.Completed)
+    val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
+
     TabRow(
-        selectedTabIndex = if (selectedTab == OrderTab.Active) 0 else 1,
+        selectedTabIndex = selectedIndex,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Tab(
-            selected = selectedTab == OrderTab.Active,
-            onClick = { onTabSelected(OrderTab.Active) },
-            text = {
-                Text(
-                    "${OrderTab.Active.label}${if (activeCount > 0) " ($activeCount)" else ""}",
-                    fontWeight = if (selectedTab == OrderTab.Active) FontWeight.Bold else FontWeight.Normal
-                )
+        tabs.forEach { tab ->
+            val labelText = when (tab) {
+                OrderTab.Active -> if (activeCount > 0) "${tab.label} ($activeCount)" else tab.label
+                OrderTab.Completed -> if (completedCount > 0) "${tab.label} ($completedCount)" else tab.label
+                OrderTab.Renting -> tab.label
             }
-        )
-        Tab(
-            selected = selectedTab == OrderTab.Completed,
-            onClick = { onTabSelected(OrderTab.Completed) },
-            text = {
-                Text(
-                    "${OrderTab.Completed.label}${if (completedCount > 0) " ($completedCount)" else ""}",
-                    fontWeight = if (selectedTab == OrderTab.Completed) FontWeight.Bold else FontWeight.Normal
-                )
-            }
-        )
+            Tab(
+                selected = selectedTab == tab,
+                onClick = { onTabSelected(tab) },
+                text = {
+                    Text(
+                        labelText,
+                        fontWeight = if (selectedTab == tab) FontWeight.Bold else FontWeight.Normal,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -143,7 +152,6 @@ private fun OrderCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
 
-            // Header: mã đơn + badge type + status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -172,15 +180,10 @@ private fun OrderCard(
             HorizontalDivider()
             Spacer(Modifier.height(12.dp))
 
-            // Items preview — chỉ 2 item đầu
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 order.items.take(2).forEach { item ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                        ) {
+                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(6.dp))) {
                             if (item.primaryImageUrl != null) {
                                 AsyncImage(
                                     model = item.primaryImageUrl,
@@ -190,9 +193,7 @@ private fun OrderCard(
                                 )
                             } else {
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
                                     contentAlignment = Alignment.Center
                                 ) { Text("🌿", style = MaterialTheme.typography.bodySmall) }
                             }
@@ -223,12 +224,8 @@ private fun OrderCard(
 
             Spacer(Modifier.height(12.dp))
 
-            // Action message hoặc tổng tiền
             if (displayInfo.actionMessage != null) {
-                ActionMessageCard(
-                    message = displayInfo.actionMessage,
-                    color = displayInfo.statusColor
-                )
+                ActionMessageCard(message = displayInfo.actionMessage, color = displayInfo.statusColor)
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -315,10 +312,7 @@ private fun ActionMessageCard(message: String, color: Color) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(color)
+                modifier = Modifier.size(8.dp).clip(CircleShape).background(color)
             )
             Spacer(Modifier.width(8.dp))
             Text(
@@ -345,6 +339,7 @@ private fun EmptyOrders(tab: OrderTab) {
             Text(
                 when (tab) {
                     OrderTab.Active -> "Không có đơn nào đang theo dõi"
+                    OrderTab.Renting -> "Bạn chưa thuê cây nào"
                     OrderTab.Completed -> "Chưa có đơn hoàn thành"
                 },
                 style = MaterialTheme.typography.titleMedium
@@ -358,7 +353,6 @@ private fun EmptyOrders(tab: OrderTab) {
     }
 }
 
-/** Format ISO date string → "20/05/2026 14:30" */
 private fun formatCreatedAt(isoString: String): String {
     return try {
         val date = java.time.OffsetDateTime.parse(isoString)

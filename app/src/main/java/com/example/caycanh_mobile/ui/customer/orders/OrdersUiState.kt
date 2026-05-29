@@ -15,6 +15,7 @@ data class OrdersUiState(
  */
 enum class OrderTab(val label: String) {
     Active("Đang theo dõi"),
+    Renting("Đang thuê"),
     Completed("Đã hoàn thành")
 }
 

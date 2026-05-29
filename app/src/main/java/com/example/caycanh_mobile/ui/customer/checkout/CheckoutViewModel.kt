@@ -104,7 +104,7 @@ class CheckoutViewModel @Inject constructor(
             _uiState.update { it.copy(phoneError = "Vui lòng nhập số điện thoại") }
             ok = false
         } else if (!state.recipientPhone.matches(Regex("^0\\d{9,10}$"))) {
-            _uiState.update { it.copy(phoneError = "SĐT Việt Nam: 10-11 số, bắt đầu 0") }
+            _uiState.update { it.copy(phoneError = "Số điện thoại không hợp lệ") }
             ok = false
         }
         if (state.shippingAddress.isBlank()) {

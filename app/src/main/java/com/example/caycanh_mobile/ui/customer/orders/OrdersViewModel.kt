@@ -49,6 +49,7 @@ class OrdersViewModel @Inject constructor(
         val state = _uiState.value
         return when (state.selectedTab) {
             OrderTab.Active -> state.orders.filter { it.isActive }
+            OrderTab.Renting -> emptyList()
             OrderTab.Completed -> state.orders.filter { it.isFinished }
         }
     }

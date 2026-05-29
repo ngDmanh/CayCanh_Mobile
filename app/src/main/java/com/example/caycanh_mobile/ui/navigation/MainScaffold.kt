@@ -57,6 +57,7 @@ private val tabs = listOf(
 fun CustomerMainScaffold(
     onPlantClick: (plantId: String) -> Unit,
     onOrderClick: (orderId: String) -> Unit,
+    onRentalClick: (rentalId: String) -> Unit,
     onNavigateCheckout: () -> Unit,
     onProfileEditClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -126,7 +127,8 @@ fun CustomerMainScaffold(
             }
             composable(BottomTab.Orders.route) {
                 OrdersScreen(
-                    onOrderClick = onOrderClick
+                    onOrderClick = onOrderClick,
+                    onRentalClick = onRentalClick
                 )
             }
             composable(BottomTab.Profile.route) {
