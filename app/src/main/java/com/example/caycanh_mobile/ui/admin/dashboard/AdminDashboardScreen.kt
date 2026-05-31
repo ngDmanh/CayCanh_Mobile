@@ -7,7 +7,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -44,6 +46,8 @@ data class AdminDashboardUiState(
     val completedOrders: Int = 0,
     val cancelledOrders: Int = 0,
     val totalRevenue: Long = 0,
+    val todayOrders: Int = 0,
+    val todayRevenue: Long = 0,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -68,11 +72,21 @@ class AdminDashboardViewModel @Inject constructor(
                 coroutineScope {
                     val ordersDef = async { adminRepository.getOrderSummary() }
                     val byTypeDef = async { adminRepository.getRevenueByType() }
-
                     val orders = ordersDef.await().getOrNull() ?: emptyList()
                     val byType = byTypeDef.await().getOrNull() ?: emptyList()
-
                     val totalRevenue = byType.sumOf { it.totalRevenue }
+
+                    val today = java.time.LocalDate.now()
+                    val todayOrdersList = orders.filter { o ->
+                        try {
+                            val date = java.time.OffsetDateTime.parse(o.createdAt).toLocalDate()
+                            date == today
+                        } catch (e: Exception) { false }
+                    }
+                    val todayOrders = todayOrdersList.size
+                    val todayRevenue = todayOrdersList
+                        .filter { it.status == "completed" }
+                        .sumOf { it.totalAmount }
 
                     _uiState.update {
                         it.copy(
@@ -84,7 +98,9 @@ class AdminDashboardViewModel @Inject constructor(
                             },
                             completedOrders = orders.count { it.status == "completed" },
                             cancelledOrders = orders.count { it.status == "cancelled" },
-                            totalRevenue = totalRevenue
+                            totalRevenue = totalRevenue,
+                            todayOrders = todayOrders,
+                            todayRevenue = todayRevenue
                         )
                     }
                 }
@@ -156,6 +172,24 @@ fun AdminDashboardScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                TodayCard(
+                    label = "Đơn hôm nay",
+                    value = uiState.todayOrders.toString(),
+                    icon = Icons.Default.Receipt,
+                    color = Color(0xFF1976D2),
+                    modifier = Modifier.weight(1f)
+                )
+                TodayCard(
+                    label = "Doanh thu hôm nay",
+                    value = formatShortMoney(uiState.todayRevenue),
+                    icon = Icons.Default.AttachMoney,
+                    color = Color(0xFF4CAF50),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
             // 2. 4 thẻ thống kê đơn
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatCard("Tổng đơn", uiState.totalOrders.toString(), Color(0xFF1976D2), Modifier.weight(1f))
@@ -551,4 +585,57 @@ private fun LowStockCard(plants: List<LowStockItem>) {
             }
         }
     }
+}
+
+@Composable
+private fun TodayCard(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(color.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Hôm nay",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Text(
+                label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun formatShortMoney(amount: Long): String = when {
+    amount >= 1_000_000 -> "${"%.1f".format(amount / 1_000_000.0).removeSuffix(".0")}tr"
+    amount >= 1_000 -> "${amount / 1_000}k"
+    else -> "${amount}đ"
 }
