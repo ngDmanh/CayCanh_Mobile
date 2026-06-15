@@ -8,6 +8,5 @@ data class CartUiState(
     val totalAmount: Long = 0,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-
     val processingItemId: String? = null
 )

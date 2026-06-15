@@ -1,6 +1,7 @@
 package com.example.caycanh_mobile.data.remote.dto.admin
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class PlantImagePayload(
@@ -43,5 +44,6 @@ data class UpdatePlantRequest(
 // Response upload ảnh
 @Serializable
 data class UploadImageResponse(
+    @SerialName("url")
     val imageUrl: String
 )
