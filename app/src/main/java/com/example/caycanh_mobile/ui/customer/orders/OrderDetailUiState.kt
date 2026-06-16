@@ -12,7 +12,9 @@ data class OrderDetailUiState(
     val showCancelDialog: Boolean = false,
     val cancelSuccess: Boolean = false,
     val cancelErrorMessage: String? = null,
-    val reviewedPlantIds: Set<String> = emptySet()
+    val reviewedPlantIds: Set<String> = emptySet(),
+    // orderItemId -> trạng thái yêu cầu trả hàng mới nhất (requested/approved/rejected/completed)
+    val returnStatusByItemId: Map<String, String> = emptyMap()
 )
 
 /**

@@ -8,6 +8,7 @@ import com.example.caycanh_mobile.data.remote.api.NotificationApi
 import com.example.caycanh_mobile.data.remote.api.OrderApi
 import com.example.caycanh_mobile.data.remote.api.PlantApi
 import com.example.caycanh_mobile.data.remote.api.RentalApi
+import com.example.caycanh_mobile.data.remote.api.ReturnApi
 import com.example.caycanh_mobile.data.remote.api.ReviewApi
 import com.example.caycanh_mobile.data.remote.interceptor.AuthInterceptor
 import com.example.caycanh_mobile.util.Constants
@@ -136,6 +137,12 @@ object NetworkModule {
     @Singleton
     fun provideRentalApi(retrofit: Retrofit): RentalApi {
         return retrofit.create(RentalApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideReturnApi(retrofit: Retrofit): ReturnApi {
+        return retrofit.create(ReturnApi::class.java)
     }
 
 }

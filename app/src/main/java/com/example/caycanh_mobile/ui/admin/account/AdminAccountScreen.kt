@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.People
@@ -78,6 +79,7 @@ fun AdminAccountScreen(
     onNavigateCustomers: () -> Unit,
     onNavigateLowStock: () -> Unit,
     onNavigateCategories: () -> Unit,
+    onNavigateReturns: () -> Unit,
     viewModel: AdminAccountViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -169,6 +171,13 @@ fun AdminAccountScreen(
                 subtitle = "Quản lý danh mục cây",
                 iconColor = Color(0xFF388E3C),
                 onClick = onNavigateCategories
+            )
+            MenuItem(
+                icon = Icons.AutoMirrored.Filled.Undo,
+                title = "Yêu cầu trả hàng",
+                subtitle = "Duyệt, từ chối và hoàn tiền cho khách",
+                iconColor = Color(0xFFFF9800),
+                onClick = onNavigateReturns
             )
 
             Spacer(Modifier.height(32.dp))

@@ -62,6 +62,7 @@ fun CustomerMainScaffold(
     onProfileEditClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onMyReviewsClick: () -> Unit,
+    onMyReturnsClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     // NavController nội bộ cho 5 tab
@@ -135,7 +136,8 @@ fun CustomerMainScaffold(
                 ProfileScreen(
                     onLogout = onLogout,
                     onEditClick = onProfileEditClick,
-                    onMyReviewsClick = onMyReviewsClick
+                    onMyReviewsClick = onMyReviewsClick,
+                    onMyReturnsClick = onMyReturnsClick
                 )
             }
         }

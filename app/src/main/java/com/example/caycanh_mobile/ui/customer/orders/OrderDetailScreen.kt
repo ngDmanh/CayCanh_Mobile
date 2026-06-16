@@ -37,6 +37,7 @@ import com.example.caycanh_mobile.util.MoneyFormatter
 fun OrderDetailScreen(
     onNavigateBack: () -> Unit,
     onReviewClick: (orderId: String, plantId: String, plantName: String) -> Unit,
+    onReturnClick: (orderId: String, orderItemId: String) -> Unit,
     viewModel: OrderDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -54,6 +55,18 @@ fun OrderDetailScreen(
             snackbarHostState.showSnackbar(it)
             viewModel.consumeCancelError()
         }
+    }
+
+    // Tải lại trạng thái trả hàng mỗi khi quay lại màn (admin có thể vừa duyệt/hoàn tiền)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.loadReturns()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -110,7 +123,9 @@ fun OrderDetailScreen(
                 OrderDetailContent(
                     order = uiState.order!!,
                     reviewedPlantIds = uiState.reviewedPlantIds,
+                    returnStatusByItemId = uiState.returnStatusByItemId,
                     onReviewClick = onReviewClick,
+                    onReturnClick = onReturnClick,
                     modifier = Modifier.padding(padding)
                 )
             }
@@ -141,7 +156,9 @@ fun OrderDetailScreen(
 private fun OrderDetailContent(
     order: OrderResponse,
     reviewedPlantIds: Set<String>,
+    returnStatusByItemId: Map<String, String>,
     onReviewClick: (orderId: String, plantId: String, plantName: String) -> Unit,
+    onReturnClick: (orderId: String, orderItemId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val displayInfo = getOrderDisplayInfo(order)
@@ -192,8 +209,12 @@ private fun OrderDetailContent(
             items = order.items,
             canReview = order.status == "completed",
             reviewedPlantIds = reviewedPlantIds,
+            returnStatusByItemId = returnStatusByItemId,
             onReviewClick = { item ->
                 onReviewClick(order.id, item.plantId, item.plantName)
+            },
+            onReturnClick = { item ->
+                onReturnClick(order.id, item.id)
             },
             modifier = Modifier.padding(horizontal = 16.dp)
         )
@@ -424,7 +445,9 @@ private fun ItemsCard(
     items: List<OrderItemResponse>,
     canReview: Boolean,
     reviewedPlantIds: Set<String>,
+    returnStatusByItemId: Map<String, String>,
     onReviewClick: (OrderItemResponse) -> Unit,
+    onReturnClick: (OrderItemResponse) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -438,7 +461,9 @@ private fun ItemsCard(
                     item = item,
                     canReview = canReview,
                     alreadyReviewed = reviewedPlantIds.contains(item.plantId),
-                    onReviewClick = { onReviewClick(item) }
+                    returnStatus = returnStatusByItemId[item.id],
+                    onReviewClick = { onReviewClick(item) },
+                    onReturnClick = { onReturnClick(item) }
                 )
                 if (idx < items.size - 1) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -453,7 +478,9 @@ private fun ItemRow(
     item: OrderItemResponse,
     canReview: Boolean = false,
     alreadyReviewed: Boolean = false,
-    onReviewClick: () -> Unit = {}
+    returnStatus: String? = null,
+    onReviewClick: () -> Unit = {},
+    onReturnClick: () -> Unit = {}
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -518,45 +545,97 @@ private fun ItemRow(
             )
         }
 
-        // Nút Đánh giá (chỉ hiện khi đơn completed VÀ là item mua, không phải thuê)
+        // Khu vực hành động — chỉ với cây mua trong đơn đã hoàn thành
         if (canReview && item.rental == null) {
-            Spacer(Modifier.height(8.dp))
-            if (alreadyReviewed) {
-                // Đã đánh giá → hiện chip xanh, không bấm được
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = null,
-                        tint = Color(0xFF4CAF50),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        "Đã đánh giá",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF4CAF50),
-                        fontWeight = FontWeight.Medium
-                    )
+            val hasActiveReturn = returnStatus == "requested" || returnStatus == "approved"
+            val isRefunded = returnStatus == "completed"
+
+            when {
+                // Đã gửi yêu cầu, đang xử lý → ẩn nút, hiện trạng thái
+                hasActiveReturn -> {
+                    Spacer(Modifier.height(8.dp))
+                    ReturnStatusLabel(text = "Đang duyệt trả hàng", color = Color(0xFFFF9800))
                 }
-            } else {
-                OutlinedButton(
-                    onClick = onReviewClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text("Đánh giá", style = MaterialTheme.typography.bodyMedium)
+                // Đã hoàn tiền xong
+                isRefunded -> {
+                    Spacer(Modifier.height(8.dp))
+                    ReturnStatusLabel(text = "Đã hoàn tiền", color = Color(0xFF4CAF50))
+                }
+                // Chưa trả (hoặc yêu cầu trước đã bị từ chối) → hiện nút Đánh giá + Trả hàng
+                else -> {
+                    Spacer(Modifier.height(8.dp))
+                    if (alreadyReviewed) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "Đã đánh giá",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF4CAF50),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = onReviewClick,
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text("Đánh giá", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = onReturnClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Trả hàng", style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ReturnStatusLabel(text: String, color: Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

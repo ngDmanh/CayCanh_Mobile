@@ -16,7 +16,8 @@ import javax.inject.Inject
 class OrderDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val orderRepository: OrderRepository,
-    private val reviewRepository: com.example.caycanh_mobile.data.repository.ReviewRepository
+    private val reviewRepository: com.example.caycanh_mobile.data.repository.ReviewRepository,
+    private val returnRepository: com.example.caycanh_mobile.data.repository.ReturnRepository
 ) : ViewModel() {
 
     private val orderId: String = checkNotNull(savedStateHandle["id"]) {
@@ -38,6 +39,7 @@ class OrderDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, order = order) }
                     if (order.status == "completed") {       // ← thêm
                         loadReviewedPlants()                  // ← thêm
+                        loadReturns()                         // ← thêm: trạng thái trả hàng
                     }
                 }
                 .onFailure { e ->
@@ -101,6 +103,24 @@ class OrderDetailViewModel @Inject constructor(
                         .map { it.plantId }
                         .toSet()
                     _uiState.update { it.copy(reviewedPlantIds = reviewedInThisOrder) }
+                }
+        }
+    }
+
+    /**
+     * Load yêu cầu trả hàng của mình → map orderItemId -> trạng thái mới nhất.
+     * Public để màn gọi lại khi quay lại (cập nhật trạng thái sau khi admin xử lý).
+     */
+    fun loadReturns() {
+        viewModelScope.launch {
+            returnRepository.getMyReturns(page = 0, size = 100)
+                .onSuccess { page ->
+                    // content đã sắp xếp mới nhất trước → first() của mỗi nhóm là yêu cầu mới nhất
+                    val map = page.content
+                        .filter { it.orderId == orderId }
+                        .groupBy { it.orderItemId }
+                        .mapValues { (_, list) -> list.first().status }
+                    _uiState.update { it.copy(returnStatusByItemId = map) }
                 }
         }
     }

@@ -48,7 +48,8 @@ fun AdminMainScaffold(
     onNavigateRevenue: () -> Unit,             // ← thêm
     onNavigateCustomers: () -> Unit,           // ← thêm
     onNavigateLowStock: () -> Unit,            // ← thêm
-    onNavigateCategories: () -> Unit
+    onNavigateCategories: () -> Unit,
+    onNavigateReturns: () -> Unit
 ) {
     val tabNavController = rememberNavController()
     val backStack by tabNavController.currentBackStackEntryAsState()
@@ -82,7 +83,9 @@ fun AdminMainScaffold(
             modifier = Modifier.padding(padding)
         ) {
             composable(AdminTab.Dashboard.route) {
-                AdminDashboardScreen()
+                AdminDashboardScreen(
+                    onNavigateReturns = onNavigateReturns
+                )
             }
             composable(AdminTab.Plants.route) {
                 com.example.caycanh_mobile.ui.admin.plants.AdminPlantsScreen(
@@ -106,7 +109,8 @@ fun AdminMainScaffold(
                     onNavigateRevenue = onNavigateRevenue,
                     onNavigateCustomers = onNavigateCustomers,
                     onNavigateLowStock = onNavigateLowStock,
-                    onNavigateCategories = onNavigateCategories
+                    onNavigateCategories = onNavigateCategories,
+                    onNavigateReturns = onNavigateReturns
                 )
             }
         }

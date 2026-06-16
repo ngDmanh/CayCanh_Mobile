@@ -32,6 +32,7 @@ import com.example.caycanh_mobile.data.remote.dto.auth.UserResponse
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.SupportAgent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +41,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onEditClick: () -> Unit,
     onMyReviewsClick: () -> Unit,
+    onMyReturnsClick: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -108,6 +110,7 @@ fun ProfileScreen(
                     user = uiState.user!!,
                     onLogoutClick = viewModel::onLogoutClick,
                     onMyReviewsClick = onMyReviewsClick,
+                    onMyReturnsClick = onMyReturnsClick,
                     modifier = Modifier.padding(padding)
                 )
             }
@@ -139,6 +142,7 @@ private fun ProfileContent(
     user: UserResponse,
     onLogoutClick: () -> Unit,
     onMyReviewsClick: () -> Unit,
+    onMyReturnsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -218,6 +222,52 @@ private fun ProfileContent(
                 Spacer(Modifier.width(12.dp))
                 Text(
                     "Đánh giá của tôi",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Yêu cầu trả hàng
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(1.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onMyReturnsClick)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Undo,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "Yêu cầu trả hàng",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.weight(1f)

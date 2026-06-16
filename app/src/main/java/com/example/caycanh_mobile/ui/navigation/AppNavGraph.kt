@@ -19,6 +19,9 @@ import com.example.caycanh_mobile.ui.customer.checkout.OrderSuccessScreen
 import com.example.caycanh_mobile.ui.customer.notifications.NotificationScreen
 import com.example.caycanh_mobile.ui.customer.orders.OrderDetailScreen
 import com.example.caycanh_mobile.ui.customer.plantdetail.PlantDetailScreen
+import com.example.caycanh_mobile.ui.customer.returns.CreateReturnScreen
+import com.example.caycanh_mobile.ui.customer.returns.MyReturnsScreen
+import com.example.caycanh_mobile.ui.customer.returns.ReturnDetailScreen
 import com.example.caycanh_mobile.ui.customer.profile.ProfileEditScreen
 import com.example.caycanh_mobile.ui.customer.review.CreateReviewScreen
 import com.example.caycanh_mobile.ui.customer.review.MyReviewsScreen
@@ -113,6 +116,9 @@ fun AppNavGraph(
                 onMyReviewsClick = {
                     navController.navigate(Routes.MyReviews.route)
                 },
+                onMyReturnsClick = {
+                    navController.navigate(Routes.MyReturns.route)
+                },
                 onLogout = {
                     navController.navigate(Routes.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -149,6 +155,9 @@ fun AppNavGraph(
                 },
                 onNavigateCategories = {
                     navController.navigate(Routes.AdminCategories.route)
+                },
+                onNavigateReturns = {
+                    navController.navigate(Routes.AdminReturns.route)
                 }
             )
         }
@@ -236,7 +245,23 @@ fun AppNavGraph(
                 onNavigateBack = { navController.popBackStack() },
                 onReviewClick = { orderId, plantId, plantName ->      // ← thêm
                     navController.navigate(Routes.CreateReview.create(orderId, plantId, plantName))
+                },
+                onReturnClick = { orderId, orderItemId ->
+                    navController.navigate(Routes.CreateReturn.create(orderId, orderItemId))
                 }
+            )
+        }
+
+        composable(
+            route = Routes.CreateReturn.route,
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType },
+                navArgument("orderItemId") { type = NavType.StringType }
+            )
+        ) {
+            CreateReturnScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
 
@@ -313,6 +338,24 @@ fun AppNavGraph(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable(Routes.MyReturns.route) {
+            MyReturnsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onReturnClick = { id ->
+                    navController.navigate(Routes.ReturnDetail.create(id))
+                }
+            )
+        }
+
+        composable(
+            route = Routes.ReturnDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            ReturnDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable(Routes.AdminRevenue.route) {
             com.example.caycanh_mobile.ui.admin.revenue.AdminRevenueScreen(
                 onNavigateBack = { navController.popBackStack() }
@@ -330,6 +373,24 @@ fun AppNavGraph(
         }
         composable(Routes.AdminCategories.route) {
             com.example.caycanh_mobile.ui.admin.categories.AdminCategoriesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.AdminReturns.route) {
+            com.example.caycanh_mobile.ui.admin.returns.AdminReturnsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onReturnClick = { id ->
+                    navController.navigate(Routes.AdminReturnDetail.create(id))
+                }
+            )
+        }
+
+        composable(
+            route = Routes.AdminReturnDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            com.example.caycanh_mobile.ui.admin.returns.AdminReturnDetailScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

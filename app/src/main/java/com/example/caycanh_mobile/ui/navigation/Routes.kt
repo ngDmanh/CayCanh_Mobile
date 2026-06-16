@@ -22,6 +22,17 @@ sealed class Routes(val route: String) {
         fun create(id: String) = "order_detail/$id"
     }
 
+    object CreateReturn : Routes("create_return/{orderId}/{orderItemId}") {
+        fun create(orderId: String, orderItemId: String) =
+            "create_return/$orderId/$orderItemId"
+    }
+
+    object MyReturns : Routes("my_returns")
+
+    object ReturnDetail : Routes("return_detail/{id}") {
+        fun create(id: String) = "return_detail/$id"
+    }
+
     object ForgotPassword : Routes("forgot_password")
 
     object VerifyResetOtp : Routes("verify_reset_otp/{email}") {
@@ -66,4 +77,9 @@ sealed class Routes(val route: String) {
     object AdminCustomers : Routes("admin_customers")
     object AdminLowStock : Routes("admin_low_stock")
     object AdminCategories : Routes("admin_categories")
+
+    object AdminReturns : Routes("admin_returns")
+    object AdminReturnDetail : Routes("admin_return_detail/{id}") {
+        fun create(id: String) = "admin_return_detail/$id"
+    }
 }

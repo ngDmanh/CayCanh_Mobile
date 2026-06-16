@@ -1,12 +1,15 @@
 package com.example.caycanh_mobile.ui.admin.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Receipt
@@ -48,6 +51,7 @@ data class AdminDashboardUiState(
     val totalRevenue: Long = 0,
     val todayOrders: Int = 0,
     val todayRevenue: Long = 0,
+    val pendingReturns: Int = 0,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -55,6 +59,7 @@ data class AdminDashboardUiState(
 @HiltViewModel
 class AdminDashboardViewModel @Inject constructor(
     private val adminRepository: AdminRepository,
+    private val returnRepository: com.example.caycanh_mobile.data.repository.ReturnRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
@@ -72,8 +77,10 @@ class AdminDashboardViewModel @Inject constructor(
                 coroutineScope {
                     val ordersDef = async { adminRepository.getOrderSummary() }
                     val byTypeDef = async { adminRepository.getRevenueByType() }
+                    val returnsDef = async { returnRepository.getAllReturns(status = "requested", page = 0, size = 1) }
                     val orders = ordersDef.await().getOrNull() ?: emptyList()
                     val byType = byTypeDef.await().getOrNull() ?: emptyList()
+                    val pendingReturns = returnsDef.await().getOrNull()?.totalElements?.toInt() ?: 0
                     val totalRevenue = byType.sumOf { it.totalRevenue }
 
                     val today = java.time.LocalDate.now()
@@ -100,7 +107,8 @@ class AdminDashboardViewModel @Inject constructor(
                             cancelledOrders = orders.count { it.status == "cancelled" },
                             totalRevenue = totalRevenue,
                             todayOrders = todayOrders,
-                            todayRevenue = todayRevenue
+                            todayRevenue = todayRevenue,
+                            pendingReturns = pendingReturns
                         )
                     }
                 }
@@ -116,6 +124,7 @@ class AdminDashboardViewModel @Inject constructor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
+    onNavigateReturns: () -> Unit = {},
     viewModel: AdminDashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -201,6 +210,14 @@ fun AdminDashboardScreen(
                 StatCard("Đã hủy", uiState.cancelledOrders.toString(), Color(0xFFE53935), Modifier.weight(1f))
             }
 
+            Spacer(Modifier.height(16.dp))
+
+            // Ô yêu cầu trả hàng — bấm để mở màn xử lý
+            ReturnsActionCard(
+                pending = uiState.pendingReturns,
+                onClick = onNavigateReturns
+            )
+
             Spacer(Modifier.height(20.dp))
 
         }
@@ -269,6 +286,54 @@ private fun StatCard(label: String, value: String, color: Color, modifier: Modif
                 label,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReturnsActionCard(pending: Int, onClick: () -> Unit) {
+    val accent = Color(0xFFFF9800)
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (pending > 0) accent.copy(alpha = 0.12f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(44.dp).clip(CircleShape).background(accent.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null, tint = accent, modifier = Modifier.size(24.dp))
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Yêu cầu trả hàng", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    if (pending > 0) "$pending yêu cầu đang chờ duyệt" else "Không có yêu cầu chờ duyệt",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (pending > 0) {
+                Box(
+                    modifier = Modifier.size(36.dp).clip(CircleShape).background(accent),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("$pending", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                }
+                Spacer(Modifier.width(8.dp))
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
